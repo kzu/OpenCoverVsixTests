@@ -94,7 +94,7 @@
 	</PropertyGroup>
 
 	<Target Name="Configure" DependsOnTargets="_GetNuGet" Condition=" '$(PendingRestore)' == 'true' ">
-		<Exec Command='"$(NuGet)" Install "$(MSBuildProjectDirectory)\build\packages.config" -OutputDirectory "$(NuGetPackagesDir)" -ExcludeVersion' />
+		<Exec Command='"$(NuGet)" Install "$(MSBuildProjectDirectory)\packages.config" -OutputDirectory "$(NuGetPackagesDir)" -ExcludeVersion' />
 		<Error Text="Xunit package was missing and was just restored. Please run the build again." Condition=" '$(Target)' != 'Configure' " />
 	</Target>
 

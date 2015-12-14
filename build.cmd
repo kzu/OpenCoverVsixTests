@@ -27,8 +27,8 @@ md src\.nuget
 copy %CACHED_NUGET% src\.nuget\nuget.exe > nul
 
 :restore
-IF NOT EXIST build\packages.config goto run
-src\.nuget\NuGet.exe install build\packages.config -OutputDirectory build\packages -ExcludeVersion
+IF NOT EXIST packages.config goto run
+src\.nuget\NuGet.exe install packages.config -OutputDirectory build\packages -ExcludeVersion
 
 :run
 "%msb%" %~dp0\build.proj /t:Build /p:Dev=. /p:Configuration=Debug /nologo /v:normal /maxcpucount /nr:true %1 %2 %3 %4 %5 %6 %7 %8 %9
