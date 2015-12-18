@@ -37,7 +37,10 @@
 		</MSBuild>
 		
 		<PropertyGroup>
-			<CoverageOptions>$(CoverageOptions) -output:$(Out)\test.coverage.xml -register:path32 -returntargetcode -filter:"@(CoveredAssembly -> '+[%(Identity)]*', ' ') -[Microsoft.*]*" -excludebyattribute:*.ExcludeFromCodeCoverage*^ -skipautoprops -hideskipped:All -threshold:1 -mergebyhash</CoverageOptions>
+      <!--<CoverageFilter>"-filter:@(CoveredAssembly -> '+[%(Identity)]*', ' ')"</CoverageFilter>-->
+      <!-- Super-simplified hardcoded assembly name doesn't work either :( -->
+      <CoverageFilter>-filter:+[MyExtension]*</CoverageFilter>
+      <CoverageOptions>$(CoverageOptions) -output:$(Out)\test.coverage.xml -register:user -returntargetcode $(CoverageFilter) -skipautoprops -hideskipped:All -mergebyhash</CoverageOptions>
 		</PropertyGroup>
 
 		<MakeDir Directories="$(Out)" Condition=" !Exists('$(Out)') " />

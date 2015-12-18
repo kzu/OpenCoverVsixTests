@@ -17,7 +17,7 @@ namespace MyExtension.IntegrationTests
 		[VsixFact(VisualStudioVersion.VS2015)]
 		public void when_invoking_service_then_succeeds ()
 		{
-			Trace.WriteLine ("Environment variables in remote Visual Studio process running from: " + Process.GetCurrentProcess ().StartInfo.FileName);
+			Trace.WriteLine ("Environment variables in remote Visual Studio process running the integration test: ");
 			Trace.WriteLine(string.Join (Environment.NewLine, Environment
 				.GetEnvironmentVariables ()
 				.OfType<DictionaryEntry> ()

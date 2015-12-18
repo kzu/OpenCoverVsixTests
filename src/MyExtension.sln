@@ -1,13 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyExtension", "MyExtension\MyExtension.csproj", "{601ACD96-E515-45E3-9BF6-00ADF3DF9532}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyExtension.Interfaces", "MyExtension.Interfaces\MyExtension.Interfaces.csproj", "{C63CFD3E-3E77-4FC1-A3FF-E2407BB251B8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyExtension.IntegrationTests", "MyExtension.IntegrationTests\MyExtension.IntegrationTests.csproj", "{2D7A3587-A39B-4145-BE0A-8A7CC411CE3D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4E128085-5011-43A1-BAC8-EB8BDB290183}"
+	ProjectSection(SolutionItems) = preProject
+		..\build.proj = ..\build.proj
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
