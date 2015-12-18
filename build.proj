@@ -1,122 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" InitialTargets="Configure" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-	<Import Project="src\NuGet.Restore.targets" />
+  <Import Project="src\NuGet.Restore.targets" />
 
-	<PropertyGroup>
-		<Configuration Condition=" '$(Configuration)' ==  ''">Debug</Configuration>
-		<Out Condition=" '$(Out)' == '' ">out</Out>
-	</PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' ==  ''">Debug</Configuration>
+    <Out Condition=" '$(Out)' == '' ">out</Out>
+  </PropertyGroup>
 
-	<PropertyGroup>
-		<NuGetPackagesDir>$(MSBuildProjectDirectory)\build\packages</NuGetPackagesDir>
-		<XunitConsole>$(NuGetPackagesDir)\xunit.runner.console\tools\xunit.console.x86.exe</XunitConsole>
-		<XunitOptions>$(XunitOptions) -html $(Out)\test.html -xml $(Out)\test.xml -parallel all -noshadow</XunitOptions>
+  <PropertyGroup>
+    <NuGetPackagesDir>$(MSBuildProjectDirectory)\build\packages</NuGetPackagesDir>
+    <XunitConsole>$(NuGetPackagesDir)\xunit.runner.console\tools\xunit.console.x86.exe</XunitConsole>
+    <XunitOptions>$(XunitOptions) -html $(Out)\test.html -xml $(Out)\test.xml -parallel all -noshadow</XunitOptions>
 
-		<CoverageConsole>$(NuGetPackagesDir)\OpenCover\tools\OpenCover.Console.exe</CoverageConsole>
-		
-		<ReportConsole>$(NuGetPackagesDir)\ReportGenerator\tools\ReportGenerator.exe</ReportConsole>
-		<ReportOptions>-reports:$(Out)\test.coverage.xml -targetdir:$(Out)\coverage -reporttypes:Html;Xml;Badges</ReportOptions>
-	</PropertyGroup>
-	
-	<ItemGroup>
-		<Solution Include="src\MyExtension.sln">
-			<AdditionalProperties>Configuration=$(Configuration)</AdditionalProperties>
-		</Solution>
-		<TestProject Include="src\MyExtension.IntegrationTests\MyExtension.IntegrationTests.csproj" />
-		<CoveredAssembly Include="MyExtension" />
-		<CoveredAssembly Include="MyExtension.IntegrationTests" />
-	</ItemGroup>
+    <MsTestConsole>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\MSTest.exe"</MsTestConsole>
 
-	<Target Name="Build">
-		<!-- Build main solution -->
-		<MSBuild Projects="@(Solution)" />
-		<!-- Gather test projects main output  -->
-		<MSBuild Projects="@(TestProject)" Targets="GetTargetPath" Properties="Configuration=$(Configuration)">
-			<Output TaskParameter="TargetOutputs" ItemName="TestAssembly" />
-		</MSBuild>
-		
-		<PropertyGroup>
-      <!--<CoverageFilter>"-filter:@(CoveredAssembly -> '+[%(Identity)]*', ' ')"</CoverageFilter>-->
-      <!-- Super-simplified hardcoded assembly name doesn't work either :( -->
-      <CoverageFilter>-filter:+[MyExtension]*</CoverageFilter>
-      <CoverageOptions>$(CoverageOptions) -output:$(Out)\test.coverage.xml -register:user -returntargetcode $(CoverageFilter) -skipautoprops -hideskipped:All -mergebyhash</CoverageOptions>
-		</PropertyGroup>
+    <CoverageConsole>$(NuGetPackagesDir)\OpenCover\tools\OpenCover.Console.exe</CoverageConsole>
+    <CoverageFilter>-filter:+[MyExtension]*</CoverageFilter>
+    <CoverageOptions>$(CoverageOptions) -output:$(Out)\test.coverage.xml -register:user -returntargetcode $(CoverageFilter) -skipautoprops -hideskipped:All -mergebyhash</CoverageOptions>
+  </PropertyGroup>
 
-		<MakeDir Directories="$(Out)" Condition=" !Exists('$(Out)') " />
-		
-		<Exec Command="$(CoverageConsole) $(CoverageOptions) -target:$(XunitConsole) -targetargs:&quot;@(TestAssembly, ' ') $(XunitOptions)&quot;"
+  <ItemGroup>
+    <Solution Include="src\MyExtension.sln">
+      <AdditionalProperties>Configuration=$(Configuration)</AdditionalProperties>
+    </Solution>
+    <TestProject Include="src\MyExtension.IntegrationTests\MyExtension.IntegrationTests.csproj" />
+    <MsTestProject Include="src\MyExtension.MsTests\MyExtension.MsTests.csproj" />
+  </ItemGroup>
+
+  <Target Name="xunit" DependsOnTargets="Build">
+    <Exec Command='$(CoverageConsole) $(CoverageOptions) -target:$(XunitConsole) -targetargs:"src\MyExtension.IntegrationTests\bin\$(Configuration)\MyExtension.IntegrationTests.dll $(XunitOptions)"'
 			  ConsoleToMSBuild="true"
 			  StandardErrorImportance="high"
 			  StandardOutputImportance="normal" />
+  </Target>
 
-		<XmlPeek XmlInputPath="$(Out)\test.coverage.xml" Query="/CoverageSession/Summary/@branchCoverage">
-			<Output TaskParameter="Result" PropertyName="BranchCoverage" />
-		</XmlPeek>
-		<XmlPeek XmlInputPath="$(Out)\test.coverage.xml" Query="/CoverageSession/Summary/@maxCyclomaticComplexity">
-			<Output TaskParameter="Result" PropertyName="MaxCyclomaticComplexity" />
-		</XmlPeek>
-
-		<PropertyGroup>
-			<BranchCoverageColor>red</BranchCoverageColor>
-			<BranchCoverageColor Condition=" '$(BranchCoverage)' &gt; '70' ">yellow</BranchCoverageColor>
-			<BranchCoverageColor Condition=" '$(BranchCoverage)' &gt; '80' ">brightgreen</BranchCoverageColor>
-			<MaxCyclomaticComplexityColor>red</MaxCyclomaticComplexityColor>
-			<MaxCyclomaticComplexityColor Condition=" '$(MaxCyclomaticComplexity)' &lt; '16' ">yellow</MaxCyclomaticComplexityColor>
-			<MaxCyclomaticComplexityColor Condition=" '$(MaxCyclomaticComplexity)' &lt; '11' ">brightgreen</MaxCyclomaticComplexityColor>
-		</PropertyGroup>
-		<PropertyGroup>
-			<Images>$(Images)&lt;img src="https://img.shields.io/badge/coverage-$(BranchCoverage)%-$(BranchCoverageColor).svg" title="Branch code coverage" /&gt;</Images>
-			<Images>$(Images)&lt;img src="https://img.shields.io/badge/complexity-$(MaxCyclomaticComplexity)-$(MaxCyclomaticComplexityColor).svg" title="Maximum cyclomatic complexity" /&gt;</Images>
-		</PropertyGroup>
-
-		<XmlEval XmlInputPath="$(Out)\test.xml" Query="sum(/assemblies/assembly/@passed)">
-			<Output TaskParameter="Result" PropertyName="Passed" />
-		</XmlEval>
-		<XmlEval XmlInputPath="$(Out)\test.xml" Query="sum(/assemblies/assembly/@failed)">
-			<Output TaskParameter="Result" PropertyName="Failed" />
-		</XmlEval>
-		<PropertyGroup>
-			<Images>$(Images)&lt;img src="https://img.shields.io/badge/xunit-$(Passed)-brightgreen.svg" title="Passing tests" /&gt;</Images>
-			<Images Condition=" '$(Failed)' != '0' ">$(Images)&lt;img src="https://img.shields.io/badge/xunit-$(Failed)-red.svg" title="Failing tests" /&gt;</Images>
-		</PropertyGroup>
-
-		<WriteLinesToFile File="$(Out)\test.badges.html" Lines="&lt;html&gt;&lt;body&gt;$(Images)&lt;/body&gt;&lt;/html&gt;" Overwrite="true" />
-
-		<Exec Command="$(ReportConsole) $(ReportOptions)"
+  <Target Name="MsTest" DependsOnTargets="Build">
+    <Exec Command='$(CoverageConsole) $(CoverageOptions) -target:$(MsTestConsole) -targetargs:"/testcontainer:src\MyExtension.MsTests\bin\$(Configuration)\MyExtension.MsTests.dll"'
 			  ConsoleToMSBuild="true"
-			  ContinueOnError="ErrorAndContinue"
 			  StandardErrorImportance="high"
 			  StandardOutputImportance="normal" />
-	</Target>
-	
-	
-	<PropertyGroup>
-    <CodeTaskProps>$(NuGetPackagesDir)\MSBuilder.CodeTaskAssembly\build\MSBuilder.CodeTaskAssembly.props</CodeTaskProps>
-		<PendingRestore Condition=" !Exists('$(XunitConsole)') Or !Exists('$(CodeTaskProps)') ">true</PendingRestore>
-	</PropertyGroup>
+  </Target>
 
-	<Target Name="Configure" DependsOnTargets="_GetNuGet" Condition=" '$(PendingRestore)' == 'true' ">
-		<Exec Command='"$(NuGet)" Install "$(MSBuildProjectDirectory)\packages.config" -OutputDirectory "$(NuGetPackagesDir)" -ExcludeVersion' />
-		<Error Text="Xunit package was missing and was just restored. Please run the build again." Condition=" '$(Target)' != 'Configure' " />
-	</Target>
+  <Target Name="Build">
+    <MakeDir Directories="$(Out)" Condition=" !Exists('$(Out)') " />
+    <!-- Build main solution -->
+    <MSBuild Projects="@(Solution)" />
+  </Target>
 
-	<Import Project="$(CodeTaskProps)" Condition="Exists('$(CodeTaskProps)')" />
-	<UsingTask TaskName="XmlEval" TaskFactory="CodeTaskFactory" AssemblyFile="$(CodeTaskAssembly)" Condition=" '$(CodeTaskAssembly)' != '' ">
-		<ParameterGroup>
-			<XmlInputPath Required="true" />
-			<Query Required="true" />
-			<Result Output="true" />
-		</ParameterGroup>
-		<Task>
-			<Reference Include="System.Xml" />
-			<Reference Include="System.Xml.Linq" />
-			<Using Namespace="System.Xml" />
-			<Using Namespace="System.Xml.Linq" />
-			<Using Namespace="System.Xml.XPath" />
-			<Code Type="Fragment" Language="cs">
-				Result = XDocument.Load(XmlInputPath).CreateNavigator().Evaluate(Query).ToString();
-			</Code>
-		</Task>
-	</UsingTask>
+  <PropertyGroup>
+    <PendingRestore Condition=" !Exists('$(CoverageConsole)') ">true</PendingRestore>
+  </PropertyGroup>
+
+  <Target Name="Configure" DependsOnTargets="_GetNuGet" Condition=" '$(PendingRestore)' == 'true' ">
+    <Exec Command='"$(NuGet)" Install "$(MSBuildProjectDirectory)\packages.config" -OutputDirectory "$(NuGetPackagesDir)" -ExcludeVersion' />
+    <Error Text="Xunit package was missing and was just restored. Please run the build again." Condition=" '$(Target)' != 'Configure' " />
+  </Target>
 </Project>
